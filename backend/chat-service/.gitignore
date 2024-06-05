@@ -1,0 +1,4 @@
+test.session.sql
+.vscode
+node_modules
+.docker/data

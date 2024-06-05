@@ -1,0 +1,47 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/var/lib/redis
+
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra1
+    ports:
+      - "9042:9042"
+    volumes:
+      - ./data/cassandra-data:/var/lib/cassandra
+    networks:
+      - cassandra-network
+
+  cassandra2:
+    image: cassandra:latest
+    container_name: cassandra2
+    depends_on:
+      - cassandra
+    ports:
+      - "9043:9042"
+    environment:
+      - CASSANDRA_SEEDS=cassandra
+    volumes:
+      - ./data/cassandra-data2:/var/lib/cassandra
+    networks:
+      - cassandra-network
+
+  sample-data:
+    image: cassandra:latest
+    depends_on:
+      - cassandra2
+    restart: "no"
+    entrypoint: ["/create-cassandra-tables.sh"]
+    volumes:
+      - ./create-cassandra-tables.sh:/create-cassandra-tables.sh
+    networks:
+      - cassandra-network
+
+networks:
+  cassandra-network:
+    driver: bridge
