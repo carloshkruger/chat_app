@@ -3,7 +3,8 @@ import { useStore } from "zustand";
 import { ChatRoom } from "@/components/ChatRoom";
 import { ContactList } from "@/components/ContactList";
 import { WebSocketErrorMessage } from "@/components/WebSocketErrorMessage";
-import { Button } from "@/components/ui/button";
+import { ConnectionLost } from "@/components/ConnectionLost";
+import { Loading } from "@/components/Loading";
 import { sendHeartbeat } from "@/api/heartbeat";
 import { chatStore } from "@/store/chat";
 
@@ -50,25 +51,12 @@ function App() {
     };
   }, [userId]);
 
-  function reloadPage() {
-    window.location.reload();
-  }
-
   if (wsReadyState === WebSocket.CONNECTING) {
-    return (
-      <div className="flex flex-col items-center gap-4 pt-4">Loading...</div>
-    );
+    return <Loading />;
   }
 
   if (wsReadyState === WebSocket.CLOSED) {
-    return (
-      <div className="flex flex-col items-center gap-4 pt-4">
-        <p>Connection lost.</p>
-        <Button variant="outline" onClick={reloadPage}>
-          Reload page
-        </Button>
-      </div>
-    );
+    return <ConnectionLost />;
   }
 
   if (wsErrorMessage) {
