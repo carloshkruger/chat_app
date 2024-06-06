@@ -5,13 +5,12 @@ import { ContactList } from "@/components/ContactList";
 import { WebSocketErrorMessage } from "@/components/WebSocketErrorMessage";
 import { ConnectionLost } from "@/components/ConnectionLost";
 import { Loading } from "@/components/Loading";
-import { sendHeartbeat } from "@/api/heartbeat";
 import { chatStore } from "@/store/chat";
+import { useHeartbeat } from "@/hooks/useHeartbeat";
 
 function App() {
   const startWs = useStore(chatStore, (store) => store.startWs);
   const closeWs = useStore(chatStore, (store) => store.closeWs);
-  const userId = useStore(chatStore, (store) => store.userId);
   const wsErrorMessage = useStore(chatStore, (store) => store.wsErrorMessage);
   const wsReadyState = useStore(chatStore, (store) => store.wsReadyState);
 
@@ -21,35 +20,7 @@ function App() {
     return () => closeWs();
   }, [startWs, closeWs]);
 
-  useEffect(() => {
-    let heartbeatIntervalId: ReturnType<typeof setInterval>;
-
-    function setHeartbeatInterval() {
-      clearInterval(heartbeatIntervalId);
-      heartbeatIntervalId = setInterval(() => sendHeartbeat(userId), 10_000);
-    }
-
-    function changeUserPresence(e: Event) {
-      const isUserActive = e.type === "focus";
-
-      if (isUserActive) {
-        sendHeartbeat(userId);
-        setHeartbeatInterval();
-      } else {
-        clearInterval(heartbeatIntervalId);
-      }
-    }
-
-    setHeartbeatInterval();
-    window.addEventListener("blur", changeUserPresence);
-    window.addEventListener("focus", changeUserPresence);
-
-    return () => {
-      clearInterval(heartbeatIntervalId);
-      window.removeEventListener("blur", changeUserPresence);
-      window.removeEventListener("focus", changeUserPresence);
-    };
-  }, [userId]);
+  useHeartbeat();
 
   if (wsReadyState === WebSocket.CONNECTING) {
     return <Loading />;
